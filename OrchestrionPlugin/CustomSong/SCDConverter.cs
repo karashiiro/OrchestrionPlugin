@@ -5,65 +5,43 @@ using System.Reflection;
 
 namespace OrchestrionPlugin.CustomSong
 {
-    enum SCDConvertError
-    {
-        None = 0,
-        NullPath = 1,
-        PathTooLong = 2,
-        DirectoryNotFound = 3,
-        UnauthorizedAccess = 4,
-        FileNotFound = 5,
-        Failed = 6,
-    }
-
+    // https://github.com/goaaats/ffxiv-explorer-fork/blob/develop/src/com/fragmenterworks/ffxivextract/gui/SCDConverterWindow.java#L275
     class SCDConverter
     {
         public static readonly int SCD_HEADER_SIZE = 0x540;
         
         private static readonly string scdHeaderFile = "scd_header.bin";
 
-        public SCDConverter()
-        {
-        }
+        public AudioConvertError Convert(string path, out byte[] convertedData) => Convert(path, null, null, out convertedData);
 
-        // https://github.com/goaaats/ffxiv-explorer-fork/blob/develop/src/com/fragmenterworks/ffxivextract/gui/SCDConverterWindow.java#L275
-        public SCDConvertError Convert(string path, out byte[] convertedData)
+        public AudioConvertError Convert(string path, int? loopStart, int? loopEnd, out byte[] convertedData)
         {
             byte[] oggFile;
-            convertedData = new byte[0];
-            try
+            AudioConvertError error = AudioConverter.OpenFile(path, out oggFile);
+            if (error != AudioConvertError.None)
             {
-                oggFile = File.ReadAllBytes(path);
+                convertedData = new byte[0];
+                return error;
             }
-            catch (Exception e)
-            {
-                if (e is ArgumentNullException)
-                    return SCDConvertError.NullPath;
-                if (e is PathTooLongException)
-                    return SCDConvertError.PathTooLong;
-                if (e is DirectoryNotFoundException)
-                    return SCDConvertError.DirectoryNotFound;
-                if (e is UnauthorizedAccessException)
-                    return SCDConvertError.UnauthorizedAccess;
-                if (e is FileNotFoundException)
-                    return SCDConvertError.FileNotFound;
-                return SCDConvertError.Failed;
-            }
+            return Convert(loopStart, loopEnd, oggFile, out convertedData);
+        }
 
+        public AudioConvertError Convert(int? loopStart, int? loopEnd, byte[] oggFile, out byte[] convertedData)
+        {
             var volume = 1.0f;
             var numChannels = 2;
             var sampleRate = 44100;
-            var loopStart = 0;
-            var loopEnd = oggFile.Length;
+            loopStart = loopStart ?? 0;
+            loopEnd = loopEnd ?? oggFile.Length;
 
-            byte[] header = CreateSCDHeader(oggFile.Length, volume, numChannels, sampleRate, loopStart, loopEnd);
+            byte[] header = CreateSCDHeader(oggFile.Length, volume, numChannels, sampleRate, (int)loopStart, (int)loopEnd);
 
             convertedData = header.Concat(oggFile).ToArray();
 
-            return SCDConvertError.None;
+            return AudioConvertError.None;
         }
 
-        public byte[] CreateSCDHeader(int oggLength, float volume, int numChannels, int sampleRate, int loopStart, int loopEnd)
+        private byte[] CreateSCDHeader(int oggLength, float volume, int numChannels, int sampleRate, int loopStart, int loopEnd)
         {
             var templateFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), scdHeaderFile);
             var scdHeader = new MemoryStream(File.ReadAllBytes(templateFile));
@@ -76,6 +54,9 @@ namespace OrchestrionPlugin.CustomSong
             scdHeader.SetValue(0x01C2, loopEnd);
             return scdHeader.ToArray();
         }
+
+        private int GetBytePosition(float samplePosition, float numSamples, float filesize)
+            => (int)((filesize/numSamples)*samplePosition);
     }
 
     static class SCDConverterUtil

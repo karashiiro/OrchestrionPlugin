@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomSong\AudioConverter.cs" />
     <Compile Include="CustomSong\CustomSongController.cs" />
     <Compile Include="IPlaybackController.cs" />
     <Compile Include="CustomSong\SCDConverter.cs" />
