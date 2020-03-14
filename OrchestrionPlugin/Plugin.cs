@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.Command;
 using Dalamud.Plugin;
+using OrchestrionPlugin.CustomSong;
 using System.IO;
 using System.Reflection;
 
@@ -13,6 +14,8 @@ namespace OrchestrionPlugin
         private const string commandName = "/porch";
 
         private DalamudPluginInterface pi;
+        private CustomSongConfiguration config;
+        private CustomSongController customSongs;
         private SongList songList;
 
         public void Initialize(DalamudPluginInterface pluginInterface)
@@ -21,6 +24,9 @@ namespace OrchestrionPlugin
 
             var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), songListFile);
             this.songList = new SongList(path, this);
+
+            this.config = pi.GetPluginConfig() as CustomSongConfiguration ?? new CustomSongConfiguration();
+            this.customSongs = new CustomSongController(this.config, this.pi);
 
             pluginInterface.CommandManager.AddHandler(commandName, new CommandInfo(OnDisplayCommand));
             pluginInterface.UiBuilder.OnBuildUi += Display;
@@ -32,6 +38,8 @@ namespace OrchestrionPlugin
 
             this.pi.UiBuilder.OnBuildUi -= Display;
             this.pi.CommandManager.RemoveHandler(commandName);
+
+            this.pi.SavePluginConfig(this.config);
 
             this.pi.Dispose();
         }
