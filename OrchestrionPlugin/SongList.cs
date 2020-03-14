@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using OrchestrionPlugin.CustomSong;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,6 +19,7 @@ namespace OrchestrionPlugin
     {
         private Dictionary<int, Song> songs = new Dictionary<int, Song>();
         private IPlaybackController controller;
+        private IPlaybackController controllerCustom;
         private int selectedSong;
         private string searchText = string.Empty;
 
@@ -28,9 +30,10 @@ namespace OrchestrionPlugin
             set { this.visible = value; }
         }
 
-        public SongList(string songListFile, IPlaybackController controller)
+        public SongList(string songListFile, IPlaybackController controller, IPlaybackController controllerCustom)
         {
             this.controller = controller;
+            this.controllerCustom = controllerCustom;
             ParseSongs(songListFile);
         }
 
@@ -126,6 +129,8 @@ namespace OrchestrionPlugin
                     }
                 }
                 ImGui.EndChild();
+
+                (this.controllerCustom as CustomSongController).Draw();
 
                 ImGui.Separator();
 

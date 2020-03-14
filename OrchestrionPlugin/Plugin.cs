@@ -23,7 +23,7 @@ namespace OrchestrionPlugin
             this.pi = pluginInterface;
 
             var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), songListFile);
-            this.songList = new SongList(path, this);
+            this.songList = new SongList(path, this, customSongs);
 
             this.config = pi.GetPluginConfig() as CustomSongConfiguration ?? new CustomSongConfiguration();
             this.customSongs = new CustomSongController(this.config, this.pi);

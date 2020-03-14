@@ -1,6 +1,8 @@
 ﻿using Dalamud.Plugin;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace OrchestrionPlugin.CustomSong
@@ -53,6 +55,15 @@ namespace OrchestrionPlugin.CustomSong
             this.convertedSongs.Add(path, convertedSong);
             this.config.SongPaths.Add(path);
             return AudioConvertError.None;
+        }
+
+        public void Draw()
+        {
+            ImGui.Separator();
+
+            ImGui.BeginChild("##customsonglist", new Vector2(0, -70));
+
+            ImGui.EndChild();
         }
     }
 }
