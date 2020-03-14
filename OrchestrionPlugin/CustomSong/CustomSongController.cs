@@ -45,9 +45,9 @@ namespace OrchestrionPlugin.CustomSong
             Marshal.Copy(convertedSongs[path], 0, loadedSong, convertedSongs[path].Length);
         }
 
-        public AudioConvertError ConvertSong(string path)
+        public AudioConvertError ConvertSong(string path, int? loopStart = null, int? loopEnd = null)
         {
-            AudioConvertError error = scd.Convert(path, out byte[] convertedSong);
+            AudioConvertError error = scd.Convert(path, loopStart, loopEnd, out byte[] convertedSong);
             if (error == AudioConvertError.None)
                 return error;
             this.convertedSongs.Add(path, convertedSong);
